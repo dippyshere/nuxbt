@@ -1,6 +1,6 @@
 # Windows and macOS Installation
 
-To support the necessary Bluetooth APIs leveraged within NXBT, installation within a Virtual Machine (VM) is necessary. To install on Windows or macOS using a VM, please follow the instructions below.
+To support the necessary Bluetooth APIs leveraged within NUXBT, installation within a Virtual Machine (VM) is necessary. To install on Windows or macOS using a VM, please follow the instructions below.
 
 ## Prerequisites
 
@@ -20,20 +20,20 @@ Additionally, please ensure that VBoxManage (a CLI that ships with VirtualBox) i
 
 ## Installation
 
-1. Clone the NXBT repo to a location of your choosing:
+1. Clone the NUXBT repo to a location of your choosing:
 
     ```bash
-    git clone https://github.com/Brikwerk/nxbt
+    git clone https://github.com/hannahbee91/nuxbt
     ```
 
 2. Navigate inside the cloned directory and run the Vagrant setup tool.
 
     ```bash
-    cd nxbt
+    cd nuxbt
     python3 vagrant_setup.py
     ```
 
-3. Follow the tool's directions and choose the USB Bluetooth adapter you would like to use with NXBT. Additionally, you'll be able to choose between intalling NXBT from PyPi or from the cloned repository. Installing NXBT from the cloned repository allows for use of development version (as well as editing NXBT itself)
+3. Follow the tool's directions and choose the USB Bluetooth adapter you would like to use with NUXBT. Additionally, you'll be able to choose between intalling NUXBT from PyPi or from the cloned repository. Installing NUXBT from the cloned repository allows for use of development version (as well as editing NUXBT itself)
 
 4. Once the Vagrant setup tool is finished, you should see a file called `Vagrantfile` located in the same directory as the setup tool. You should now be able to boot the VM with the following command:
 
@@ -79,11 +79,11 @@ Additionally, please ensure that VBoxManage (a CLI that ships with VirtualBox) i
 
     If you're not able to see your adapter within the VM or the adapter isn't functional, please refer to the troubleshooting section below.
 
-8. If the above checks pass, NXBT should be functional within your VM. You can run NXBT commands as normal while SSHed into the VM:
+8. If the above checks pass, NUXBT should be functional within your VM. You can run NUXBT commands as normal while SSHed into the VM:
 
     ```bash
     # Eg:
-    sudo nxbt test
+    sudo nuxbt test
     ```
 
 9. Finally, Vagrant exposes the following other commands to halt the VM and completely destroy it:

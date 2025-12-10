@@ -4,7 +4,7 @@ from datetime import datetime
 
 def create_logger(debug=False, log_to_file=False, disable_logging=False):
 
-    logger = logging.getLogger('nxbt')
+    logger = logging.getLogger('nuxbt')
 
     if disable_logging:
         null_handler = logging.NullHandler()
@@ -15,7 +15,7 @@ def create_logger(debug=False, log_to_file=False, disable_logging=False):
         logger.setLevel(logging.DEBUG)
 
     if log_to_file:
-        file_handler = logging.FileHandler(f'./nxbt {datetime.now()}.log')
+        file_handler = logging.FileHandler(f'./nuxbt {datetime.now()}.log')
         file_handler.setFormatter(
             logging.Formatter("[%(asctime)s] %(levelname)s in %(module)s: %(message)s")
         )

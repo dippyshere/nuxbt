@@ -1,4 +1,4 @@
-# Writing an NXBT Macro
+# Writing an NUXBT Macro
 
 ### Basic Macro script
 
@@ -17,7 +17,7 @@ B 0.1s
 1s
 ```
 
-This is effectively a single B button press. NXBT will then wait 1 second before moving to the next action.
+This is effectively a single B button press. NUXBT will then wait 1 second before moving to the next action.
 
 ### Advanced Macros
 

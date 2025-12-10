@@ -3,7 +3,7 @@ A quick script to test aspects of the BlueZ API.
 """
 import dbus
 
-from nxbt import BlueZ, find_objects, SERVICE_NAME, ADAPTER_INTERFACE
+from nuxbt import BlueZ, find_objects, SERVICE_NAME, ADAPTER_INTERFACE
 
 
 bus = dbus.SystemBus()

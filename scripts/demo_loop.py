@@ -1,7 +1,7 @@
 from random import randint
 from time import sleep
 
-from nxbt import Nxbt, PRO_CONTROLLER
+from nuxbt import Nxbt, PRO_CONTROLLER
 
 
 MACRO = """

@@ -111,7 +111,7 @@ def toggle_clean_bluez(toggle):
 
     service_path = "/lib/systemd/system/bluetooth.service"
     override_dir = Path("/run/systemd/system/bluetooth.service.d")
-    override_path = override_dir / "nxbt.conf"
+    override_path = override_dir / "nuxbt.conf"
 
     if toggle:
         if override_path.is_file():
@@ -365,7 +365,7 @@ class BlueZ():
 
     def __init__(self, adapter_path="/org/bluez/hci0"):
 
-        self.logger = logging.getLogger('nxbt')
+        self.logger = logging.getLogger('nuxbt')
 
         self.bus = dbus.SystemBus()
         self.device_path = adapter_path

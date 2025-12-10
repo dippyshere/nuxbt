@@ -6,7 +6,7 @@ import multiprocessing
 
 from blessed import Terminal
 
-from .nxbt import Nxbt, PRO_CONTROLLER
+from .nuxbt import Nxbt, PRO_CONTROLLER
 
 
 class LoadingSpinner():
@@ -280,7 +280,7 @@ class InputTUI():
                 from pynput import keyboard
             except ImportError as e:
                 print("Unable to import pynput for direct input.")
-                print("If you're accessing NXBT over a remote shell, ", end="")
+                print("If you're accessing NUXBT over a remote shell, ", end="")
                 print("please use the 'remote_tui' option instead of 'tui'.")
                 print("The original pynput import is displayed below:\n")
                 print(e)
@@ -517,7 +517,7 @@ class InputTUI():
                 except KeyError:
                     pass
 
-        def input_worker(nxbt, controller_index, input_packet):
+        def input_worker(nuxbt, controller_index, input_packet):
 
             while True:
                 packet = input_packet["packet"]
@@ -550,7 +550,7 @@ class InputTUI():
                 packet["R_STICK"]["X_VALUE"] = rs_x_value
                 packet["R_STICK"]["Y_VALUE"] = rs_y_value
 
-                nxbt.set_controller_input(controller_index, packet)
+                nuxbt.set_controller_input(controller_index, packet)
                 time.sleep(1/120)
 
         input_process = multiprocessing.Process(
@@ -589,7 +589,7 @@ class InputTUI():
         print(term.center("│ ╲╱__╲╱ │"))
         print(term.center("│╱      ╲│"))
         print(term.center("┌──────────────────┐"))
-        print(term.center("│     NXBT TUI     │"))
+        print(term.center("│     NUXBT TUI     │"))
         print(term.center("└──────────────────┘"))
         print(term.center(""))
         print(term.black_on_white(term.center("")))
@@ -606,7 +606,7 @@ class InputTUI():
         else:
             print(term.bold_black_on_white(term.center("DIRECT INPUT MODE")))
         print(term.move_y(1))
-        print(term.white_on_black(" NXBT TUI 🎮 "))
+        print(term.white_on_black(" NUXBT TUI 🎮 "))
 
     def render_bottom_bar(self, term):
 

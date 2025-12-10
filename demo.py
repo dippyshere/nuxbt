@@ -1,9 +1,9 @@
 import time
 from random import randint
 
-import nxbt
-from nxbt import Buttons
-from nxbt import Sticks
+import nuxbt
+from nuxbt import Buttons
+from nuxbt import Sticks
 
 MACRO = """
 LOOP 12
@@ -59,8 +59,8 @@ def random_colour():
 
 if __name__ == "__main__":
 
-    # Init NXBT
-    nx = nxbt.Nxbt()
+    # Init NUXBT
+    nx = nuxbt.Nxbt()
 
     # Get a list of all available Bluetooth adapters
     adapters = nx.get_available_adapters()
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     # Switch Pro Controllers
     for i in range(0, len(adapters)):
         index = nx.create_controller(
-            nxbt.PRO_CONTROLLER,
+            nuxbt.PRO_CONTROLLER,
             adapter_path=adapters[i],
             colour_body=random_colour(),
             colour_buttons=random_colour())

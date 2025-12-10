@@ -1,18 +1,17 @@
 <h1 align="center">
   <br>
-  <img src="https://raw.githubusercontent.com/Brikwerk/nxbt/master/docs/img/nxbt-logo.png" alt="NXBT" width="200">
+  <img src="https://raw.githubusercontent.com/hannahbee91/nuxbt/master/docs/img/nuxbt-logo.png" alt="NUXBT" width="200">
   <br>
-  NXBT
+  NUXBT
   <br>
 </h1>
+
+<h4 align="center">Fork and update of the original [NXBT](https://github.com/Brikwerk/nxbt) - maintaining this fork as the original author has not been active for over 2 years.
 
 <h4 align="center">Control your Nintendo Switch through a website, terminal, or macro.</h4>
 
 <div align="center">
 
-  [![Stars](https://img.shields.io/github/stars/brikwerk/nxbt.svg)]() 
-  [![GitHub Issues](https://img.shields.io/github/issues/brikwerk/nxbt.svg)](https://github.com/brikwerk/ctqa/issues)
-  [![GitHub Pull Requests](https://img.shields.io/github/issues-pr/brikwerk/nxbt.svg)](https://github.com/brikwerk/ctqa/pulls)
   [![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
 
 </div>
@@ -26,14 +25,14 @@
   <a href="#license">License</a>
 </p>
 
-![screenshot](https://raw.githubusercontent.com/Brikwerk/nxbt/master/docs/img/nxbt-example.png)
+![screenshot](https://raw.githubusercontent.com/hannahbee91/nuxbt/master/docs/img/nuxbt-example.png)
 
 ## Key Features
 
 - Use your favourite web browser to control a Nintendo Switch with any keyboard or gamepad.
 - Use your terminal to control a Nintendo Switch with a keyboard.
 - Use a macro from your terminal, browser, or Python script
-- Use the NXBT Python API to write programs to control your Nintendo Switch.
+- Use the NUXBT Python API to write programs to control your Nintendo Switch.
 - Primitive loop support in macros.
 - In-depth command line interface.
 - Support for emulating multiple controllers at once.
@@ -47,18 +46,18 @@
 
 ```bash
 pyenv install 3.11
-pyenv virtualenv 3.11 nxbt
-pyenv activate nxbt
-pip install nxbt
+pyenv virtualenv 3.11 nuxbt
+pyenv activate nuxbt
+pip install git+https://github.com/hannahbee91/nuxbt.git
 ```
 
-This will create a virtual environment and install NXBT into it. If you do not have pyenv installed, you can follow the instructions [here](https://github.com/pyenv/pyenv#installation), or use any other virtual environment manager. You can then add an nxbt alias to your .bashrc or .zshrc file to run NXBT from the virtual environment.
+This will create a virtual environment and install NUXBT into it. If you do not have pyenv installed, you can follow the instructions [here](https://github.com/pyenv/pyenv#installation), or use any other virtual environment manager. You can then add an nuxbt alias to your .bashrc or .zshrc file to run NUXBT from the virtual environment.
 
 ```bash
-alias nxbt="sudo $HOME/.pyenv/versions/nxbt/bin/nxbt"
+alias nuxbt="sudo $HOME/.pyenv/versions/nuxbt/bin/nuxbt"
 ```
 
-**Please Note:** NXBT needs root privileges to toggle the BlueZ Input plugin. As such, the alias includes `sudo`.
+**Please Note:** NUXBT needs root privileges to toggle the BlueZ Input plugin. As such, the alias includes `sudo`.
 
 ### Windows and macOS
 
@@ -68,36 +67,36 @@ See the installation guide [here.](docs/Windows-and-macOS-Installation.md)
 
 ### Running the demo
 
-The demo is meant to gauge whether or not NXBT is working. To do so, the demo will create a Pro Controller and run through a small loop of commands.
+The demo is meant to gauge whether or not NUXBT is working. To do so, the demo will create a Pro Controller and run through a small loop of commands.
 
-**NOTE:** If this is your first time connecting to an NXBT emulated controller on the specific host computer, you **MUST** have the "Change Grip/Order Menu" open on your Nintendo Switch. You can see how to navigate to the "Change Grip/Order Menu" [HERE](docs/img/change-grip-order-menu.png).
+**NOTE:** If this is your first time connecting to an NUXBT emulated controller on the specific host computer, you **MUST** have the "Change Grip/Order Menu" open on your Nintendo Switch. You can see how to navigate to the "Change Grip/Order Menu" [HERE](docs/img/change-grip-order-menu.png).
 
 To start the demo, run the following command in your terminal:
 
 ```bash
-nxbt demo
+nuxbt demo
 ```
 
 If all is working correctly, the controller should connect, navigate to the settings, test the stick calibration, and navigate back to the "Change Grip/Order Menu".
 
 ## Using the Webapp
 
-The NXBT webapp provides a web interface that allows for quick creation of a Nintendo Switch controller and use of a keyboard or gamepad to control the Nintendo Switch. This lets anyone who can access the website control a Nintendo Switch with their favourite keyboard or gamepad.
+The NUXBT webapp provides a web interface that allows for quick creation of a Nintendo Switch controller and use of a keyboard or gamepad to control the Nintendo Switch. This lets anyone who can access the website control a Nintendo Switch with their favourite keyboard or gamepad.
 
 The webapp server can be started with the following command:
 
 ```bash
-nxbt webapp
+nuxbt webapp
 ```
 
-The above command boots NXBT and an accompanying web server that allows for controller creation and use over your web browser.
+The above command boots NUXBT and an accompanying web server that allows for controller creation and use over your web browser.
 
-The webapp itself will be locally accessible at `http://127.0.0.1:8000` or, if you're on the same network as the host computer, http://HOST_COMPUTER_IP:8000. It's also possible to expose your NXBT webapp to the internet, however, you'll need to configure a reverse proxy, which is out of the scope of this readme.
+The webapp itself will be locally accessible at `http://127.0.0.1:8000` or, if you're on the same network as the host computer, http://HOST_COMPUTER_IP:8000. It's also possible to expose your NUXBT webapp to the internet, however, you'll need to configure a reverse proxy, which is out of the scope of this readme.
 
 You should see a webpage similar to the following image:
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Brikwerk/nxbt/master/docs/img/nxbt-webapp-start.png" alt="NXBT Webapp Start Screen" width="600">
+  <img src="https://raw.githubusercontent.com/hannahbee91/nuxbt/master/docs/img/nuxbt-webapp-start.png" alt="NUXBT Webapp Start Screen" width="600">
 </div>
 
 To create and start a Pro Controller, click the Pro controller graphic. If creation/boot is successful, the website will switch to a loading screen. During this time, you should have the Nintendo Switch you wish to connect to powered on and within range of the host computer.
@@ -107,14 +106,14 @@ To create and start a Pro Controller, click the Pro controller graphic. If creat
 Once you've successfully connected to the Nintendo Switch, you should see a webpage similar to below:
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Brikwerk/nxbt/master/docs/img/nxbt-webapp-connected.png" alt="NXBT Webapp Connected Screen" width="600">
+  <img src="https://raw.githubusercontent.com/hannahbee91/nuxbt/master/docs/img/nuxbt-webapp-connected.png" alt="NUXBT Webapp Connected Screen" width="600">
 </div>
 
-Here, you can change your input method, shutdown or restart the controller, and run an NXBT macro.
+Here, you can change your input method, shutdown or restart the controller, and run an NUXBT macro.
 
 A few other functions to note:
 - If you exit the webpage, the controller will shutdown.
-- Once you've connected over the "Change Grip/Order Menu", NXBT will automatically reconnect. This applies on a per-Bluetooth-adapter basis.
+- Once you've connected over the "Change Grip/Order Menu", NUXBT will automatically reconnect. This applies on a per-Bluetooth-adapter basis.
 - Most gamepads should be usable over the browser. To get started with a gamepad, click a button and it should show up under the input dropdown list. If it doesn't show up, try another browser. Chrome is the recommended standard as it seems to have the best gamepad support currently (as of September 2020)
 
 ## Using the TUI
@@ -124,7 +123,7 @@ The TUI (Terminal User Interface) allows for local or remote (SSH/Mosh) terminal
 The TUI can be started with:
 
 ```bash
-nxbt tui
+nuxbt tui
 ```
 
 **NOTE:** If this is your first time connecting to your Nintendo Switch with the specific host computer, make sure you're on the "Change Grip/Order Menu". If you're still unable to connect, try running the demo (in the above section) or refer to the troubleshooting documentation.
@@ -132,29 +131,29 @@ nxbt tui
 A loading screen should open and, once connected, the main TUI control screen should load. This should look something like below:
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Brikwerk/nxbt/master/docs/img/nxbt-tui.png" alt="NXBT TUI Connected" width="600">
+  <img src="https://raw.githubusercontent.com/hannahbee91/nuxbt/master/docs/img/nuxbt-tui.png" alt="NUXBT TUI Connected" width="600">
 </div>
 
-There are two types of NXBT TUI sessions:
+There are two types of NUXBT TUI sessions:
 1. **Remote Mode (pictured above):** When connecting over an SSH (or Mosh) connection, "Remote Mode" is used to compensate for keyup events not being sent over remote terminal sessions. This functionally means that "Remote Mode" is a bit less responsive than "Direct Mode".
-2. **Direct Mode:** When running the NXBT TUI directly on the host computer, keyboard key presses are taken directly from any keyboard plugged in.
+2. **Direct Mode:** When running the NUXBT TUI directly on the host computer, keyboard key presses are taken directly from any keyboard plugged in.
 
 Once you've successfully connected to a Nintendo Switch over the "Change Grip/Order Menu", you can reconnect quickly to the same Switch with the following command:
 
 ```bash
-nxbt tui -r
+nuxbt tui -r
 ```
 
 A couple other funcionality notes:
 - Press 'q' to exit the TUI.
 - In Direct Mode, press Escape to toggle input to the Nintendo Switch.
-- NXBT looks for SSH and Mosh connections before deciding whether or note Remote Mode should be used. If you use another method for creating a remote terminal instance, NXBT likely won't detect it. Please open an issue if this happens to you!
+- NUXBT looks for SSH and Mosh connections before deciding whether or note Remote Mode should be used. If you use another method for creating a remote terminal instance, NUXBT likely won't detect it. Please open an issue if this happens to you!
 
 ## Running Macros
 
-NXBT provides three ways to run macros on your Nintendo Switch:
+NUXBT provides three ways to run macros on your Nintendo Switch:
 
-1. The NXBT Webapp (easiest)
+1. The NUXBT Webapp (easiest)
 2. The CLI
 3. The Python API
 
@@ -167,13 +166,13 @@ For info on writing macros, check out the documentation [here](docs/Macros.md).
 To run a simple, inline macro, you can use the following command:
 
 ```bash
-nxbt macro -c "B 0.1s\n 0.1s"
+nuxbt macro -c "B 0.1s\n 0.1s"
 ```
 
 The above command will press the B button for 0.1 seconds and release all buttons for 0.1 seconds. The `-c` flag specifies the commands you would like to run. You'll need to be on the "Change Grip/Order Menu" for the above command to work. If you've already connected to the Switch on the host computer, you can reconnect and run the macro by adding the `-r` or `--reconnect` flag:
 
 ```bash
-nxbt macro -c "B 0.1s\n 0.1s" -r
+nuxbt macro -c "B 0.1s\n 0.1s" -r
 ```
 
 Since it can be a little cumbersome typing out a large macro in the terminal, the macro command also supports reading from text files instead!
@@ -185,13 +184,13 @@ B 0.1s
 ```
 
 ```bash
-nxbt macro -c "commands.txt" -r
+nuxbt macro -c "commands.txt" -r
 ```
 
-If you want more information on NXBT's CLI arguments:
+If you want more information on NUXBT's CLI arguments:
 
 ```bash
-nxbt -h
+nuxbt -h
 ```
 
 ### Running Macros with the Python API
@@ -201,18 +200,18 @@ Macros are supported with the `macro` function in the Python API. All macros are
 Minimal working example:
 
 ```python
-import nxbt
+import nuxbt
 
 macro = """
 B 0.1s
 0.1s
 """
 
-# Start the NXBT service
-nx = nxbt.Nxbt()
+# Start the NUXBT service
+nx = nuxbt.Nxbt()
 
 # Create a Pro Controller and wait for it to connect
-controller_index = nx.create_controller(nxbt.PRO_CONTROLLER)
+controller_index = nx.create_controller(nuxbt.PRO_CONTROLLER)
 nx.wait_for_connection(controller_index)
 
 # Run a macro on the Pro Controller
@@ -236,23 +235,23 @@ print("Macro has finished")
 
 ## Using the API
 
-NXBT provides a Python API for use in Python applications or code.
+NUXBT provides a Python API for use in Python applications or code.
 
 If you're someone that learns by example, check out the `demo.py` file located at the root of this project.
 
-For a more in-depth look at all the functionality provided by the API, checkout the `nxbt/nxbt.py` file.
+For a more in-depth look at all the functionality provided by the API, checkout the `nuxbt/nuxbt.py` file.
 
 For those looking to get started with a few simple examples: Read on!
 
 **Creating a Controller and Waiting for it to Connect**
 ```python
-import nxbt
+import nuxbt
 
-# Start the NXBT service
-nx = nxbt.Nxbt()
+# Start the NUXBT service
+nx = nuxbt.Nxbt()
 
 # Create a Pro Controller and wait for it to connect
-controller_index = nx.create_controller(nxbt.PRO_CONTROLLER)
+controller_index = nx.create_controller(nuxbt.PRO_CONTROLLER)
 nx.wait_for_connection(controller_index)
 
 print("Connected")
@@ -262,10 +261,10 @@ print("Connected")
 ```python
 # Press the B button
 # press_buttons defaults to pressing a button for 0.1s and releasing for 0.1s
-nx.press_buttons(controller_idx, [nxbt.Buttons.B])
+nx.press_buttons(controller_idx, [nuxbt.Buttons.B])
 
 # Pressing the B button for 1.0s instead of 0.1s
-nx.press_buttons(controller_idx, [nxbt.Buttons.B], down=1.0)
+nx.press_buttons(controller_idx, [nuxbt.Buttons.B], down=1.0)
 ```
 
 **Tilting a Analog Stick**
@@ -295,7 +294,7 @@ nx.remove_controller(controller_index)
 ```python
 # Get a list of all previously connected Switches and pass it as a reconnect_address argument
 controller_index = nx.create_controller(
-    nxbt.PRO_CONTROLLER,
+    nuxbt.PRO_CONTROLLER,
     reconnect_address=nx.get_switch_addresses())
 ```
 
@@ -323,15 +322,15 @@ sudo apt-get install libdbus-glib-1-dev libdbus-1-dev
 
 ### My controller disconnects after exiting the "Change Grip/Order" Menu
 
-This can occasionally occur due to timing sensitivities when transitioning off of the "Change Grip/Order" menu. To avoid disconnections when exiting this menu, please only press A (or B) a single time and wait until the menu has fully exited. If a disconnect still occurs, you should be able to reconnect your controller and use NXBT as normal.
+This can occasionally occur due to timing sensitivities when transitioning off of the "Change Grip/Order" menu. To avoid disconnections when exiting this menu, please only press A (or B) a single time and wait until the menu has fully exited. If a disconnect still occurs, you should be able to reconnect your controller and use NUXBT as normal.
 
 ### "No Available Adapters"
 
-This means that NXBT wasn't able to find a suitable Bluetooth adapter to use for Nintendo Switch controller emulation. Only one controller can be emulated per adapter on the system, so if you've got one Bluetooth adapter available, you'll only be able to emulate one Nintendo Switch controller. The general causes (and solutions) to the above error follows:
+This means that NUXBT wasn't able to find a suitable Bluetooth adapter to use for Nintendo Switch controller emulation. Only one controller can be emulated per adapter on the system, so if you've got one Bluetooth adapter available, you'll only be able to emulate one Nintendo Switch controller. The general causes (and solutions) to the above error follows:
 
 1. **Cause:** All available adapters are currently emulating a controller.
   - **Solution:** End one of the other controller sessions (either through the webapp or command line) or plug in another Bluetooth adapter.
-2. **Cause:** No Bluetooth adapters are available to NXBT.
+2. **Cause:** No Bluetooth adapters are available to NUXBT.
   - **Solution:** Ensure that you've installed the relevant Bluetooth stack for your operating system (BlueZ on Linux) and check that your Bluetooth adapter is visible within to your OS.
 
 ### "Address already in use"
@@ -339,7 +338,7 @@ This means that NXBT wasn't able to find a suitable Bluetooth adapter to use for
 This means that another service has already bound itself to the Control and Interrupt ports on the specified Bluetooth adapter. Causes/solutions follow:
 
 1. **Cause:** (Linux specific solution) This is typically the BlueZ input plugin binding itself to the Control/Interrupt ports for your adapter.
-  - **Solution:** Either disable the input plugin (you will lose access to Bluetooth keyboards/mice while it is disabled) or install NXBT as root to allow for temporary toggling of the Input plugin.
+  - **Solution:** Either disable the input plugin (you will lose access to Bluetooth keyboards/mice while it is disabled) or install NUXBT as root to allow for temporary toggling of the Input plugin.
 
 ## Future Plans
 
@@ -361,7 +360,7 @@ This means that another service has already bound itself to the Control and Inte
 
 ## Credits
 
-A big thank you goes out to all the contributors at the [dekuNukem/Nintendo_Switch_Reverse_Engineering](https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering) repository! Almost all information pertaining to the innerworkings of the Nintendo Switch Controllers comes from the documentation in that repo. Without it, NXBT wouldn't have been possible.
+A big thank you goes out to all the contributors at the [dekuNukem/Nintendo_Switch_Reverse_Engineering](https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering) repository! Almost all information pertaining to the innerworkings of the Nintendo Switch Controllers comes from the documentation in that repo. Without it, NUXBT wouldn't have been possible.
 
 ## License
 

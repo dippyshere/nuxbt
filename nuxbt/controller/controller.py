@@ -18,7 +18,7 @@ class Controller():
 
     GAMEPAD_CLASS = "0x002508"
     SDP_UUID = "00001000-0000-1000-8000-00805f9b34fb"
-    SDP_RECORD_PATH = "/nxbt/controller"
+    SDP_RECORD_PATH = "/nuxbt/controller"
     ALIASES = {
         ControllerTypes.JOYCON_L: "Joy-Con (L)",
         ControllerTypes.JOYCON_R: "Joy-Con (R)",
@@ -28,7 +28,7 @@ class Controller():
     def __init__(self, bluetooth, controller_type):
 
         self.bt = bluetooth
-        self.logger = logging.getLogger('nxbt')
+        self.logger = logging.getLogger('nuxbt')
 
         if controller_type not in self.ALIASES.keys():
             raise ValueError("Unknown controller type specified")

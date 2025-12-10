@@ -111,7 +111,7 @@ class Sticks():
 
 
 class NxbtCommands(Enum):
-    """An enumeration containing the nxbt message
+    """An enumeration containing the nuxbt message
     commands.
     """
 
@@ -125,7 +125,7 @@ class NxbtCommands(Enum):
 
 
 class Nxbt():
-    """The nxbt object implements the core multiprocessing logic
+    """The nuxbt object implements the core multiprocessing logic
     and message passing API that acts as the central of the application.
     Upon creation, a multiprocessing Process is spun off to act at the
     manager for all emulated Nintendo Switch controllers. Messages
@@ -142,7 +142,7 @@ class Nxbt():
         the multiprocessing processes.
 
         :param debug: Enables the debugging functionality of
-        nxbt, defaults to False
+        nuxbt, defaults to False
         :type debug: bool, optional
         :param log_to_file: A boolean value that indiciates whether or not
         a log should be saved to the current working directory, defaults to False
@@ -163,9 +163,9 @@ class Nxbt():
 
         # Creates/manages shared resources
         self.resource_manager = Manager()
-        # Shared dictionary for viewing overall nxbt state.
+        # Shared dictionary for viewing overall nuxbt state.
         # Should treated as read-only except by
-        # the main nxbt multiprocessing process.
+        # the main nuxbt multiprocessing process.
         self.manager_state = self.resource_manager.dict()
         self.manager_state_lock = Lock()
 
@@ -183,7 +183,7 @@ class Nxbt():
         # Exit handler
         atexit.register(self._on_exit)
 
-        # Starting the nxbt worker process
+        # Starting the nuxbt worker process
         self.controllers = Process(
             target=self._command_manager,
             args=((self.task_queue), (self.manager_state)))
@@ -324,7 +324,7 @@ class Nxbt():
 
         :param controller_index: The index of a given controller
         :type controller_index: int
-        :param buttons: A list of nxbt.Buttons
+        :param buttons: A list of nuxbt.Buttons
         :type buttons: list
         :param down: How long to hold the buttons down for
         in seconds, defaults to 0.1
@@ -358,8 +358,8 @@ class Nxbt():
 
         :param controller_index: The index of a given controller
         :type controller_index: int
-        :param stick: The right or left nxbt.Stick
-        :type stick: nxbt.Stick
+        :param stick: The right or left nuxbt.Stick
+        :type stick: nuxbt.Stick
         :param x: The positive or negative X-Axis of the stick on
         a 0 to 100 scale
         :type x: int

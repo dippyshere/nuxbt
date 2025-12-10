@@ -4,7 +4,7 @@ from time import sleep
 import os
 import traceback
 
-from .nxbt import Nxbt, PRO_CONTROLLER
+from .nuxbt import Nxbt, PRO_CONTROLLER
 from .bluez import find_devices_by_alias
 from .tui import InputTUI
 
@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('command', default=False, choices=[
                         'webapp', 'demo', 'macro', 'tui', 'remote_tui', 'addresses', 'test'
                     ],
-                    help="""Specifies the nxbt command to run:
+                    help="""Specifies the nuxbt command to run:
                     webapp - Runs web server and allows for controller/macro
                     input from a web browser.
                     demo - Runs a demo macro (please ensure that your Switch
@@ -24,21 +24,21 @@ parser.add_argument('command', default=False, choices=[
                     to the Switch. 
                     addresses - Lists the Bluetooth MAC addresses for
                     all previously connected Nintendo Switches.
-                    test - Runs through a series of tests to ensure NXBT is working and
+                    test - Runs through a series of tests to ensure NUXBT is working and
                     compatible with your system.""")
 parser.add_argument('-c', '--commands', required=False, default=False,
                     help="""Used in conjunction with the macro command. Specifies a
                     macro string or a file location to load a macro string from.""")
 parser.add_argument('-r', '--reconnect', required=False, default=False, action='store_true',
                     help="""Used in conjunction with the macro or tui command. If specified,
-                    nxbt will attmept to reconnect to any previously connected
+                    nuxbt will attmept to reconnect to any previously connected
                     Nintendo Switch.""")
 parser.add_argument('-a', '--address', required=False, default=False,
                     help="""Used in conjunction with the macro or tui command. If specified,
-                    nxbt will attmept to reconnect to a specific Bluetooth MAC address
+                    nuxbt will attmept to reconnect to a specific Bluetooth MAC address
                     of a Nintendo Switch.""")
 parser.add_argument('-d', '--debug', required=False, default=False, action='store_true',
-                    help="""Enables debug mode in nxbt.""")
+                    help="""Enables debug mode in nuxbt.""")
 parser.add_argument('-l', '--logfile', required=False, default=False, action='store_true',
                     help="""Enables logging to a file in the current working directory
                     instead of stderr.""")
@@ -177,9 +177,9 @@ def demo():
 
 
 def test():
-    """Tests NXBT functionality"""
+    """Tests NUXBT functionality"""
     # Init
-    print("[1] Attempting to initialize NXBT...")
+    print("[1] Attempting to initialize NUXBT...")
     nx = None
     try:
         nx = Nxbt(debug=args.debug, log_to_file=args.logfile)
@@ -187,7 +187,7 @@ def test():
         print("Failed to initialize:")
         print(traceback.format_exc())
         exit(1)
-    print("Successfully initialized NXBT.\n")
+    print("Successfully initialized NUXBT.\n")
 
     # Adapter Check
     print("[2] Checking for Bluetooth adapter availability...")

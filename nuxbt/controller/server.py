@@ -22,7 +22,7 @@ class ControllerServer():
                  state=None, task_queue=None, lock=None, colour_body=None,
                  colour_buttons=None):
 
-        self.logger = logging.getLogger('nxbt')
+        self.logger = logging.getLogger('nuxbt')
         # Cache logging level to increase performance on checks
         self.logger_level = self.logger.level
 

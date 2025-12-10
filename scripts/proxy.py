@@ -35,10 +35,10 @@ import time
 import fcntl
 from time import perf_counter
 
-from nxbt import toggle_clean_bluez
-from nxbt import BlueZ
-from nxbt import Controller
-from nxbt import JOYCON_L, JOYCON_R, PRO_CONTROLLER
+from nuxbt import toggle_clean_bluez
+from nuxbt import BlueZ
+from nuxbt import Controller
+from nuxbt import JOYCON_L, JOYCON_R, PRO_CONTROLLER
 
 
 JCL_REPLY02 = b'\xA2\x21\x05\x8E\x84\x00\x12\x01\x18\x80\x01\x18\x80\x80\x82\x02\x03\x48\x01\x02\xDC\xA6\x32\x16\x4A\x7C\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'

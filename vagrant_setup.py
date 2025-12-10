@@ -57,9 +57,7 @@ def check_cli(name, cli_string, msg=None):
             print(msg)
         exit(1)
 
-GH_SHELL_CONFIG = """cd /vagrant
-    pip3 install -e ."""
-PYPI_SHELL_CONFIG = """pip3 install nxbt"""
+INSTALL_SCRIPT = """pip3 install git+https://github.com/hannahbee91/nuxbt"""
 
 if __name__ == "__main__":
     print("Checking for the required utilities...")
@@ -75,9 +73,9 @@ if __name__ == "__main__":
     print("")
 
     print("---")
-    print("Welcome to the nxbt-vagrant setup.")
+    print("Welcome to the nuxbt-vagrant setup.")
     print("As part of the first step in this process, you will "
-          "select the USB Bluetooth adapter that will be used with NXBT.")
+          "select the USB Bluetooth adapter that will be used with NUXBT.")
     print("Please ensure that your adapter is plugged into this computer.")
     print("---")
     input("Press the enter key to continue.")
@@ -102,17 +100,6 @@ if __name__ == "__main__":
     adapter_info = devices[int(usb_choice)]
     print("")
 
-    # Choose how to install NXBT (PyPi or Github)
-    invalid_choice = True
-    while invalid_choice:
-        install_choice = input(
-            "Would you like to install NXBT from (1) PyPi or (2) install from local files? (1/2) ")
-        if install_choice in ['1', '2']:
-            invalid_choice = False
-        else:
-            print("Invalid choice. Please choose PyPi (1) or Github clone/install (2)")
-    print("")
-
     print("Configuring...")
     with open("template_vagrantfile", "r") as f:
         vagrantfile = f.read()
@@ -125,15 +112,12 @@ if __name__ == "__main__":
         "--productid", "{adapter_info['productid']}",
         "--vendorid", "{adapter_info['vendorid']}",]"""
     vagrantfile = vagrantfile.replace("{{USB_FILTER}}", vb_usb_filter)
-    if install_choice == '1':
-        vagrantfile = vagrantfile.replace("{{SHELL_CONFIG}}", PYPI_SHELL_CONFIG)
-    else:
-        vagrantfile = vagrantfile.replace("{{SHELL_CONFIG}}", GH_SHELL_CONFIG)
+    vagrantfile = vagrantfile.replace("{{SHELL_CONFIG}}", INSTALL_SCRIPT)
 
     with open("Vagrantfile", "w") as f:
         f.write(vagrantfile)
     print("Done!")
     print("")
 
-    print("You can now start the NXBT Vagrant Box with 'vagrant up'.")
+    print("You can now start the NUXBT Vagrant Box with 'vagrant up'.")
     print("After booting up, the Vagrant Box can be access with 'vagrant ssh'.")

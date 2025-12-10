@@ -2,7 +2,7 @@
 /* Globals, Constants, and Enums */
 /**********************************************/
 
-let NXBT_CONTROLLER_INDEX = false;
+let NUXBT_CONTROLLER_INDEX = false;
 let CONTROLLER_INDEX = false;
 let CONTROLLER_CONNECTED = false;
 let STATE = false;
@@ -216,7 +216,7 @@ socket.on('connect', function() {
 
 checkForLoadInterval = false;
 socket.on('create_pro_controller', function(index) {
-    NXBT_CONTROLLER_INDEX = index;
+    NUXBT_CONTROLLER_INDEX = index;
     checkForLoadInterval = setInterval(checkForLoad, 1000);
 });
 
@@ -331,7 +331,7 @@ function displayOtherSessions() {
         return;
     // If the only controller session is the current one
     } else if (controllerIndices.length === 1 && 
-            Number(controllerIndices[0]) === NXBT_CONTROLLER_INDEX) {
+            Number(controllerIndices[0]) === NUXBT_CONTROLLER_INDEX) {
         HTML_CONTROLLER_SESSIONS.classList.add("hidden");
         return;
     }
@@ -340,7 +340,7 @@ function displayOtherSessions() {
     HTML_CONTROLLER_SESSIONS_CONTAINER.innerHTML = ""
     for (let i = 0; i < controllerIndices.length; i++) {
         sessionIndex = controllerIndices[i];
-        if (sessionIndex === NXBT_CONTROLLER_INDEX) {
+        if (sessionIndex === NUXBT_CONTROLLER_INDEX) {
             continue
         }
 
@@ -393,8 +393,8 @@ function createProController() {
 }
 
 function shutdownController() {
-    if (STATE[NXBT_CONTROLLER_INDEX]) {
-        socket.emit('shutdown', NXBT_CONTROLLER_INDEX);
+    if (STATE[NUXBT_CONTROLLER_INDEX]) {
+        socket.emit('shutdown', NUXBT_CONTROLLER_INDEX);
     }
 }
 
@@ -408,8 +408,8 @@ function restartController() {
 }
 
 function checkForLoad() {
-    if (STATE[NXBT_CONTROLLER_INDEX]) {
-        controller_state = STATE[NXBT_CONTROLLER_INDEX].state
+    if (STATE[NUXBT_CONTROLLER_INDEX]) {
+        controller_state = STATE[NUXBT_CONTROLLER_INDEX].state
         HTML_LOADER_TEXT.innerHTML = controller_state;
 
         if (controller_state === ControllerState.CONNECTED) {
@@ -427,8 +427,8 @@ function checkForLoad() {
 }
 
 function updateStatusIndicator() {
-    if (STATE[NXBT_CONTROLLER_INDEX]) {
-        controller_state = STATE[NXBT_CONTROLLER_INDEX].state;
+    if (STATE[NUXBT_CONTROLLER_INDEX]) {
+        controller_state = STATE[NUXBT_CONTROLLER_INDEX].state;
         if (controller_state === ControllerState.CONNECTED) {
             changeStatusIndicatorState("indicator-green", "CONNECTED");
         } else if (controller_state === ControllerState.CONNECTING) {
@@ -622,11 +622,11 @@ function eventLoop() {
     }
 
     // Only send packet if it's not a duplicate of previous.
-    // We can do this since NXBT will hold the previously sent value
+    // We can do this since NUXBT will hold the previously sent value
     // until we send it a new one.
     let currentInputJSON = JSON.stringify(INPUT_PACKET);
     if (currentInputJSON !== JSON.stringify(INPUT_PACKET_OLD)) {
-        socket.emit('input', JSON.stringify([NXBT_CONTROLLER_INDEX, INPUT_PACKET]));
+        socket.emit('input', JSON.stringify([NUXBT_CONTROLLER_INDEX, INPUT_PACKET]));
         INPUT_PACKET_OLD = JSON.parse(currentInputJSON);
     }
 
@@ -688,7 +688,7 @@ function sendMacro() {
     if (IS_LOOPING) {
         runMacroLoop(macro);
     } else {
-        socket.emit('macro', JSON.stringify([NXBT_CONTROLLER_INDEX, macro]));
+        socket.emit('macro', JSON.stringify([NUXBT_CONTROLLER_INDEX, macro]));
     }
 }
 
@@ -696,7 +696,7 @@ function runMacroLoop(macro) {
     if (!IS_LOOPING) return;
 
     // Send the macro and wait for acknowledgement (which comes when macro finishes)
-    socket.emit('macro', JSON.stringify([NXBT_CONTROLLER_INDEX, macro]), function(macro_id) {
+    socket.emit('macro', JSON.stringify([NUXBT_CONTROLLER_INDEX, macro]), function(macro_id) {
         waitForMacro(macro_id, function() {
             if (IS_LOOPING) {
                 runMacroLoop(macro);
@@ -710,8 +710,8 @@ function waitForMacro(macro_id, callback) {
         // We force a state update check here to ensure we don't wait too long
         socket.emit('state'); 
         
-        if (STATE && STATE[NXBT_CONTROLLER_INDEX]) {
-             let finished = STATE[NXBT_CONTROLLER_INDEX].finished_macros;
+        if (STATE && STATE[NUXBT_CONTROLLER_INDEX]) {
+             let finished = STATE[NUXBT_CONTROLLER_INDEX].finished_macros;
              if (finished.indexOf(macro_id) > -1) {
                  clearInterval(checkInterval);
                  callback();
@@ -801,7 +801,7 @@ function generateMacroString() {
         let lsX = Math.round(p["L_STICK"]["X_VALUE"]);
         let lsY = Math.round(p["L_STICK"]["Y_VALUE"]);
         if (lsX !== 0 || lsY !== 0) { // Only add if not centered? Or always?
-            // NXBT parser expects stick args if stick keyword is used.
+            // NUXBT parser expects stick args if stick keyword is used.
             // But we only need to specify stick if we want to move it.
             // If we omit it, it defaults to center?
             // Existing `input.py` resets to center if not specified in subsequent idle packets?
@@ -830,8 +830,8 @@ function generateMacroString() {
             // `set_macro_input` takes a list of tokens.
             // If tokens are empty, it does nothing for that cycle?
             // We need to ensure we wait.
-            // But the time is part of the macro line in NXBT?
-            // Wait, looking at `nxbt.py`: `macro_times = f"{down}s \n{up}s"`
+            // But the time is part of the macro line in NUXBT?
+            // Wait, looking at `nuxbt.py`: `macro_times = f"{down}s \n{up}s"`
             // It seems "0.1s" is a token?
             // Let's check `parse_macro`: `parsed = macro.split("\n")`
             // `input.py` line 196: `self.current_macro.pop(0).strip(" ").split(" ")`

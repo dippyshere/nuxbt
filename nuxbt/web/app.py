@@ -5,7 +5,7 @@ import time
 from socket import gethostname
 
 from .cert import generate_cert
-from ..nxbt import Nxbt, PRO_CONTROLLER
+from ..nuxbt import Nxbt, PRO_CONTROLLER
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 import eventlet
@@ -14,7 +14,7 @@ import eventlet
 app = Flask(__name__,
             static_url_path='',
             static_folder='static',)
-nxbt = Nxbt()
+nuxbt = Nxbt()
 
 # Configuring/retrieving secret key
 secrets_path = os.path.join(
@@ -50,7 +50,7 @@ def on_connect():
 
 @sio.on('state')
 def on_state():
-    state_proxy = nxbt.state.copy()
+    state_proxy = nuxbt.state.copy()
     state = {}
     for controller in state_proxy.keys():
         state[controller] = state_proxy[controller].copy()
@@ -63,14 +63,14 @@ def on_disconnect():
     with user_info_lock:
         try:
             index = USER_INFO[request.sid]["controller_index"]
-            nxbt.remove_controller(index)
+            nuxbt.remove_controller(index)
         except KeyError:
             pass
 
 
 @sio.on('shutdown')
 def on_shutdown(index):
-    nxbt.remove_controller(index)
+    nuxbt.remove_controller(index)
 
 
 @sio.on('web_create_pro_controller')
@@ -78,8 +78,8 @@ def on_create_controller():
     print("Create Controller")
 
     try:
-        reconnect_addresses = nxbt.get_switch_addresses()
-        index = nxbt.create_controller(PRO_CONTROLLER, reconnect_address=reconnect_addresses)
+        reconnect_addresses = nuxbt.get_switch_addresses()
+        index = nuxbt.create_controller(PRO_CONTROLLER, reconnect_address=reconnect_addresses)
 
         with user_info_lock:
             USER_INFO[request.sid]["controller_index"] = index
@@ -95,7 +95,7 @@ def handle_input(message):
     message = json.loads(message)
     index = message[0]
     input_packet = message[1]
-    nxbt.set_controller_input(index, input_packet)
+    nuxbt.set_controller_input(index, input_packet)
 
 
 @sio.on('macro')
@@ -103,14 +103,14 @@ def handle_macro(message):
     message = json.loads(message)
     index = message[0]
     macro = message[1]
-    macro_id = nxbt.macro(index, macro, block=False)
+    macro_id = nuxbt.macro(index, macro, block=False)
     return macro_id
 
 
 
 @sio.on('stop_all_macros')
 def handle_stop_all_macros():
-    nxbt.clear_all_macros()
+    nuxbt.clear_all_macros()
 
 
 
@@ -137,14 +137,14 @@ def start_web_app(ip='0.0.0.0', port=8000, usessl=False, cert_path=None):
                 "\n"
                 "-----------------------------------------\n"
                 "---------------->WARNING<----------------\n"
-                "The NXBT webapp is being run with self-\n"
+                "The NUXBT webapp is being run with self-\n"
                 "signed SSL certificates for use on your\n"
                 "local network.\n"
                 "\n"
                 "These certificates ARE NOT safe for\n"
                 "production use. Please generate valid\n"
                 "SSL certificates if you plan on using the\n"
-                "NXBT webapp anywhere other than your own\n"
+                "NUXBT webapp anywhere other than your own\n"
                 "network.\n"
                 "-----------------------------------------\n"
                 "\n"
