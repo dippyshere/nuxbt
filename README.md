@@ -39,24 +39,32 @@
 - Support for emulating multiple controllers at once.
 - Support for fast connection or reconnection to a Nintendo Switch.
 - Emulated ontrollers support thread-safe access.
+- Record and replay macros through the webapp.
 
 ## Installation
 
 ### Linux
 
 ```bash
-sudo pip3 install nxbt
+pyenv install 3.11
+pyenv virtualenv 3.11 nxbt
+pyenv activate nxbt
+pip install nxbt
 ```
 
-**Please Note:** NXBT needs root privileges to toggle the BlueZ Input plugin. If you're not comfortable running this program as root, you can disable the Input plugin manually, and install NXBT as a regular user.
+This will create a virtual environment and install NXBT into it. If you do not have pyenv installed, you can follow the instructions [here](https://github.com/pyenv/pyenv#installation), or use any other virtual environment manager. You can then add an nxbt alias to your .bashrc or .zshrc file to run NXBT from the virtual environment.
+
+```bash
+alias nxbt="sudo $HOME/.pyenv/versions/nxbt/bin/nxbt"
+```
+
+**Please Note:** NXBT needs root privileges to toggle the BlueZ Input plugin. As such, the alias includes `sudo`.
 
 ### Windows and macOS
 
 See the installation guide [here.](docs/Windows-and-macOS-Installation.md)
 
 ## Getting Started
-
-**Note:** If you installed NXBT as a non-root user, please omit the use of `sudo` from any of the following commands.
 
 ### Running the demo
 
@@ -67,7 +75,7 @@ The demo is meant to gauge whether or not NXBT is working. To do so, the demo wi
 To start the demo, run the following command in your terminal:
 
 ```bash
-sudo nxbt demo
+nxbt demo
 ```
 
 If all is working correctly, the controller should connect, navigate to the settings, test the stick calibration, and navigate back to the "Change Grip/Order Menu".
@@ -79,7 +87,7 @@ The NXBT webapp provides a web interface that allows for quick creation of a Nin
 The webapp server can be started with the following command:
 
 ```bash
-sudo nxbt webapp
+nxbt webapp
 ```
 
 The above command boots NXBT and an accompanying web server that allows for controller creation and use over your web browser.
@@ -116,7 +124,7 @@ The TUI (Terminal User Interface) allows for local or remote (SSH/Mosh) terminal
 The TUI can be started with:
 
 ```bash
-sudo nxbt tui
+nxbt tui
 ```
 
 **NOTE:** If this is your first time connecting to your Nintendo Switch with the specific host computer, make sure you're on the "Change Grip/Order Menu". If you're still unable to connect, try running the demo (in the above section) or refer to the troubleshooting documentation.
@@ -134,7 +142,7 @@ There are two types of NXBT TUI sessions:
 Once you've successfully connected to a Nintendo Switch over the "Change Grip/Order Menu", you can reconnect quickly to the same Switch with the following command:
 
 ```bash
-sudo nxbt tui -r
+nxbt tui -r
 ```
 
 A couple other funcionality notes:
@@ -159,13 +167,13 @@ For info on writing macros, check out the documentation [here](docs/Macros.md).
 To run a simple, inline macro, you can use the following command:
 
 ```bash
-sudo nxbt macro -c "B 0.1s\n 0.1s"
+nxbt macro -c "B 0.1s\n 0.1s"
 ```
 
 The above command will press the B button for 0.1 seconds and release all buttons for 0.1 seconds. The `-c` flag specifies the commands you would like to run. You'll need to be on the "Change Grip/Order Menu" for the above command to work. If you've already connected to the Switch on the host computer, you can reconnect and run the macro by adding the `-r` or `--reconnect` flag:
 
 ```bash
-sudo nxbt macro -c "B 0.1s\n 0.1s" -r
+nxbt macro -c "B 0.1s\n 0.1s" -r
 ```
 
 Since it can be a little cumbersome typing out a large macro in the terminal, the macro command also supports reading from text files instead!
@@ -177,13 +185,13 @@ B 0.1s
 ```
 
 ```bash
-sudo nxbt macro -c "commands.txt" -r
+nxbt macro -c "commands.txt" -r
 ```
 
 If you want more information on NXBT's CLI arguments:
 
 ```bash
-sudo nxbt -h
+nxbt -h
 ```
 
 ### Running Macros with the Python API

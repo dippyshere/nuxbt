@@ -205,7 +205,21 @@
                         macro.
                     </p>
                     <textarea id="macro-text" class="mono" placeholder="Type Your Macro Here" onfocus="disableKeyHandlers()" onblur="enableKeyHandlers()"></textarea>
-                    <button onclick="sendMacro()">Run Macro</button>
+                    
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+                        <button id="record-macro-btn" onclick="toggleRecording()">Record Input</button>
+                        <span id="recording-status" class="indicator-red hidden" style="font-weight: bold;">● REC</span>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button onclick="sendMacro()">Run Macro</button>
+                        <div>
+                            <input type="checkbox" id="loop-macro" name="loop-macro">
+                            <label for="loop-macro">Loop</label>
+                        </div>
+                    </div>
+                    
+                    <button onclick="stopAllMacros()" style="margin-top: 10px; background-color: #aa4444;">Stop All Macros</button>
                 </div>
             </section>
 

@@ -103,7 +103,15 @@ def handle_macro(message):
     message = json.loads(message)
     index = message[0]
     macro = message[1]
-    nxbt.macro(index, macro)
+    macro_id = nxbt.macro(index, macro, block=False)
+    return macro_id
+
+
+
+@sio.on('stop_all_macros')
+def handle_stop_all_macros():
+    nxbt.clear_all_macros()
+
 
 
 def start_web_app(ip='0.0.0.0', port=8000, usessl=False, cert_path=None):

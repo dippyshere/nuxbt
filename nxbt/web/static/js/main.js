@@ -7,6 +7,14 @@ let CONTROLLER_INDEX = false;
 let CONTROLLER_CONNECTED = false;
 let STATE = false;
 
+// Macro Global Variables
+let IS_RECORDING = false;
+let RECORDED_MACRO = [];
+let RECORD_START_TIME = false;
+let LAST_INPUT_PACKET_JSON = false;
+let IS_LOOPING = false;
+let CURRENT_RUNNING_MACRO_ID = false;
+
 // HTML SECTIONS
 let HTML_CONTROLLER_SELECTION = document.getElementById("controller-selection");
 let HTML_LOADER = document.getElementById("loader");
@@ -616,9 +624,39 @@ function eventLoop() {
     // Only send packet if it's not a duplicate of previous.
     // We can do this since NXBT will hold the previously sent value
     // until we send it a new one.
-    if (JSON.stringify(INPUT_PACKET) !== JSON.stringify(INPUT_PACKET_OLD)) {
+    let currentInputJSON = JSON.stringify(INPUT_PACKET);
+    if (currentInputJSON !== JSON.stringify(INPUT_PACKET_OLD)) {
         socket.emit('input', JSON.stringify([NXBT_CONTROLLER_INDEX, INPUT_PACKET]));
-        INPUT_PACKET_OLD = JSON.parse(JSON.stringify(INPUT_PACKET));
+        INPUT_PACKET_OLD = JSON.parse(currentInputJSON);
+    }
+
+    // Macro Recording Logic
+    if (IS_RECORDING) {
+        let now = performance.now();
+        
+        // Initialize last input packet json if not set
+        if (!LAST_INPUT_PACKET_JSON) {
+            LAST_INPUT_PACKET_JSON = currentInputJSON;
+        }
+
+        // Check if input changed
+        if (currentInputJSON !== LAST_INPUT_PACKET_JSON) {
+            let duration = (now - RECORD_START_TIME) / 1000;
+            // Cap duration to 0s minimum (shouldn't happen but for safety)
+            if (duration < 0) duration = 0;
+
+            // Record the PREVIOUS state for the duration it was held
+            // We use LAST_INPUT_PACKET_JSON because that's what was active
+            // for the duration calculated.
+            RECORDED_MACRO.push({
+                packet: JSON.parse(LAST_INPUT_PACKET_JSON),
+                duration: duration
+            });
+            
+            // Reset start time and update last packet
+            RECORD_START_TIME = now;
+            LAST_INPUT_PACKET_JSON = currentInputJSON;
+        }
     }
 
     updateGamepadDisplay()
@@ -644,8 +682,200 @@ function eventLoop() {
 
 function sendMacro() {
     let macro = HTML_MACRO_TEXT.value.toUpperCase();
-    socket.emit('macro', JSON.stringify([NXBT_CONTROLLER_INDEX, macro]));
+    let loopCheckbox = document.getElementById("loop-macro");
+    IS_LOOPING = loopCheckbox.checked;
+
+    if (IS_LOOPING) {
+        runMacroLoop(macro);
+    } else {
+        socket.emit('macro', JSON.stringify([NXBT_CONTROLLER_INDEX, macro]));
+    }
 }
+
+function runMacroLoop(macro) {
+    if (!IS_LOOPING) return;
+
+    // Send the macro and wait for acknowledgement (which comes when macro finishes)
+    socket.emit('macro', JSON.stringify([NXBT_CONTROLLER_INDEX, macro]), function(macro_id) {
+        waitForMacro(macro_id, function() {
+            if (IS_LOOPING) {
+                runMacroLoop(macro);
+            }
+        });
+    });
+}
+
+function waitForMacro(macro_id, callback) {
+    let checkInterval = setInterval(function() {
+        // We force a state update check here to ensure we don't wait too long
+        socket.emit('state'); 
+        
+        if (STATE && STATE[NXBT_CONTROLLER_INDEX]) {
+             let finished = STATE[NXBT_CONTROLLER_INDEX].finished_macros;
+             if (finished.indexOf(macro_id) > -1) {
+                 clearInterval(checkInterval);
+                 callback();
+             }
+        }
+    }, 100); // Check every 100ms
+}
+
+// Global variable to track the loop interval or timeout
+let LOOP_TIMEOUT = false;
+
+function toggleRecording() {
+    let btn = document.getElementById("record-macro-btn");
+    let status = document.getElementById("recording-status");
+    let textArea = document.getElementById("macro-text");
+
+    if (!IS_RECORDING) {
+        // Start Recording
+        IS_RECORDING = true;
+        RECORDED_MACRO = [];
+        RECORD_START_TIME = performance.now();
+        LAST_INPUT_PACKET_JSON = false;
+        
+        btn.innerHTML = "Stop Recording";
+        status.classList.remove("hidden");
+        textArea.value = ""; // Clear text area
+        textArea.placeholder = "Recording...";
+        textArea.disabled = true;
+    } else {
+        // Stop Recording
+        IS_RECORDING = false;
+        
+        // Capture the last state's duration
+        let now = performance.now();
+        let duration = (now - RECORD_START_TIME) / 1000;
+        if (duration < 0) duration = 0;
+        if (LAST_INPUT_PACKET_JSON) {
+             RECORDED_MACRO.push({
+                packet: JSON.parse(LAST_INPUT_PACKET_JSON),
+                duration: duration
+            });
+        }
+
+        btn.innerHTML = "Record Input";
+        status.classList.add("hidden");
+        textArea.disabled = false;
+        
+        // Generate Macro String
+        let macroString = generateMacroString();
+        textArea.value = macroString;
+    }
+}
+
+function generateMacroString() {
+    let lines = [];
+    
+    for (let step of RECORDED_MACRO) {
+        let p = step.packet;
+        let d = step.duration.toFixed(3) + "s";
+        let buttons = [];
+
+        // Digital Buttons
+        if (p["A"]) buttons.push("A");
+        if (p["B"]) buttons.push("B");
+        if (p["X"]) buttons.push("X");
+        if (p["Y"]) buttons.push("Y");
+        if (p["PLUS"]) buttons.push("PLUS");
+        if (p["MINUS"]) buttons.push("MINUS");
+        if (p["HOME"]) buttons.push("HOME");
+        if (p["CAPTURE"]) buttons.push("CAPTURE");
+        if (p["L"]) buttons.push("L");
+        if (p["R"]) buttons.push("R");
+        if (p["ZL"]) buttons.push("ZL");
+        if (p["ZR"]) buttons.push("ZR");
+        
+        if (p["DPAD_UP"]) buttons.push("DPAD_UP");
+        if (p["DPAD_DOWN"]) buttons.push("DPAD_DOWN");
+        if (p["DPAD_LEFT"]) buttons.push("DPAD_LEFT");
+        if (p["DPAD_RIGHT"]) buttons.push("DPAD_RIGHT");
+        
+        // Joystick Buttons
+        if (p["L_STICK"]["PRESSED"]) buttons.push("L_STICK_PRESS");
+        if (p["R_STICK"]["PRESSED"]) buttons.push("R_STICK_PRESS");
+        
+        // Sticks
+        // Format: L_STICK@+100+000
+        let lsX = Math.round(p["L_STICK"]["X_VALUE"]);
+        let lsY = Math.round(p["L_STICK"]["Y_VALUE"]);
+        if (lsX !== 0 || lsY !== 0) { // Only add if not centered? Or always?
+            // NXBT parser expects stick args if stick keyword is used.
+            // But we only need to specify stick if we want to move it.
+            // If we omit it, it defaults to center?
+            // Existing `input.py` resets to center if not specified in subsequent idle packets?
+            // Actually `input.py` sets specific inputs.
+            // Let's just always include stick positions if they are non-zero.
+             buttons.push(formatStick("L_STICK", lsX, lsY));
+        }
+
+        let rsX = Math.round(p["R_STICK"]["X_VALUE"]);
+        let rsY = Math.round(p["R_STICK"]["Y_VALUE"]);
+        if (rsX !== 0 || rsY !== 0) {
+             buttons.push(formatStick("R_STICK", rsX, rsY));
+        }
+        
+        // join buttons
+        let line = buttons.join(" ");
+        if (line.length === 0) {
+            // No buttons pressed, just wait?
+            // We need at least empty string?
+            // `input.py` `set_macro_input`: if len < 2 return.
+            // We need a dummy line or just the time.
+            // Actually `input.py` keys off specific strings.
+            // If the line is empty, it does nothing but waiting?
+            // No, the parser splits by newline.
+            // `parse_controller_input` takes a dict.
+            // `set_macro_input` takes a list of tokens.
+            // If tokens are empty, it does nothing for that cycle?
+            // We need to ensure we wait.
+            // But the time is part of the macro line in NXBT?
+            // Wait, looking at `nxbt.py`: `macro_times = f"{down}s \n{up}s"`
+            // It seems "0.1s" is a token?
+            // Let's check `parse_macro`: `parsed = macro.split("\n")`
+            // `input.py` line 196: `self.current_macro.pop(0).strip(" ").split(" ")`
+            // `timer_length = self.current_macro_commands[-1]`
+            // So the last token is the time!
+            // So we can just have "0.1s" as the line if no buttons.
+            
+            line = d;
+        } else {
+            line += " " + d;
+        }
+        
+        lines.push(line);
+    }
+    
+    return lines.join("\n");
+}
+
+function formatStick(name, x, y) {
+    // Expected format: L_STICK@+100+100
+    // 3 digits for value.
+    let xStr = (x >= 0 ? "+" : "") + x.toString().replace("-", ""); // Manual sign handling to ensure format
+    // Pad to 3 digits? 
+    // `input.py`: `ratio_x = int(positions[1:4]) / 100` -> Indexes 1,2,3. So yes 3 digits.
+    // If x is 0, string is "0". Pad to "000".
+    
+    // Helper to pad
+    function pad3(num) {
+        let s = Math.abs(num).toString();
+        while (s.length < 3) s = "0" + s;
+        return s;
+    }
+    
+    let xFmt = (x >= 0 ? "+" : "-") + pad3(x);
+    let yFmt = (y >= 0 ? "+" : "-") + pad3(y);
+    
+    return name + "@" + xFmt + yFmt;
+}
+
+function stopAllMacros() {
+    IS_LOOPING = false;
+    socket.emit('stop_all_macros');
+}
+
 
 /**********************************************/
 /* Debug Functionality */
