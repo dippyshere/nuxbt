@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v1.1.2 (2025-12-12)
+
+### Bug Fixes
+
+- **bluetooth**: Fixed issues with reliably connecting
+  ([#7](https://github.com/hannahbee91/nuxbt/pull/7),
+  [`471380b`](https://github.com/hannahbee91/nuxbt/commit/471380bbb2ab1c65cfc1deed15bf2b0526b47486))
+
+Introduced a bluez agent to silently accept pairing requests on the host
+
+Also made some other minor changes
+
+
 ## v1.1.1 (2025-12-12)
 
 ### Bug Fixes
