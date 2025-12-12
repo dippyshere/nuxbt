@@ -1,6 +1,34 @@
 # CHANGELOG
 
 
+## v1.1.1 (2025-12-12)
+
+### Bug Fixes
+
+- **bug**: Fixed missing package files in manifest
+  ([#6](https://github.com/hannahbee91/nuxbt/pull/6),
+  [`924c0bc`](https://github.com/hannahbee91/nuxbt/commit/924c0bc3b8178771a161e73e84b62e9b99d1c708))
+
+### Testing
+
+- Added tests and updated documentation ([#5](https://github.com/hannahbee91/nuxbt/pull/5),
+  [`07d192a`](https://github.com/hannahbee91/nuxbt/commit/07d192a66ae21a3065c3549d6e00b71e98cee217))
+
+* build: Ensure non-core changes are not counted as new versions
+
+* test(tui): Added tests to the TUI
+
+* docs: Updated readme and vagrant with published PyPi package
+
+* docs: Added CoC and Contributing
+
+* docs: Updated readme
+
+* docs: Update plans and screenshots
+
+* fix(tests): Fixed headless TUI tests
+
+
 ## v1.1.0 (2025-12-12)
 
 ### Bug Fixes
