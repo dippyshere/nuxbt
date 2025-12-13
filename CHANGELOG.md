@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v1.3.2 (2025-12-13)
+
+### Bug Fixes
+
+- **ppa**: Fixed issues with missing original tarball
+  ([#13](https://github.com/hannahbee91/nuxbt/pull/13),
+  [`50801b8`](https://github.com/hannahbee91/nuxbt/commit/50801b8b031e7447fdc66e84b0d029d6891362b7))
+
+
 ## v1.3.1 (2025-12-13)
 
 ### Bug Fixes
