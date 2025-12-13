@@ -1,6 +1,20 @@
 # CHANGELOG
 
 
+## v1.4.0 (2025-12-13)
+
+### Features
+
+- **vagrant**: Vagrant now uses PPA to install ([#15](https://github.com/hannahbee91/nuxbt/pull/15),
+  [`4ad2192`](https://github.com/hannahbee91/nuxbt/commit/4ad219241e622383fd068040f0096d408278e734))
+
+* feat(vagrant): Vagrant now uses PPA to install
+
+* fix(ci): Fixed dependencies in PPA source
+
+* fix(ci): Fixed syntax of workflow
+
+
 ## v1.3.2 (2025-12-13)
 
 ### Bug Fixes
