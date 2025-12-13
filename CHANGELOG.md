@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v1.3.0 (2025-12-13)
+
+### Features
+
+- **releases**: Automatically publish new versions to ppa
+  ([#11](https://github.com/hannahbee91/nuxbt/pull/11),
+  [`1dd2baa`](https://github.com/hannahbee91/nuxbt/commit/1dd2baa57e69d821c2ac7551e71c7cda8fb3dd24))
+
+
 ## v1.2.2 (2025-12-12)
 
 ### Bug Fixes
