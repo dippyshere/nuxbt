@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v1.5.5 (2025-12-15)
+
+### Bug Fixes
+
+- **ci**: Fixed a duplicated line causing validation error
+  ([#24](https://github.com/hannahbee91/nuxbt/pull/24),
+  [`bd2435a`](https://github.com/hannahbee91/nuxbt/commit/bd2435a787120b05895ef0460c803a2da615155a))
+
+
 ## v1.5.4 (2025-12-15)
 
 ### Bug Fixes
