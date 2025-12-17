@@ -1,6 +1,38 @@
 # CHANGELOG
 
 
+## v3.0.0 (2025-12-17)
+
+### Features
+
+- **gui**: Created a gui for launching ([#29](https://github.com/hannahbee91/nuxbt/pull/29),
+  [`64c135a`](https://github.com/hannahbee91/nuxbt/commit/64c135a2f7418f25645da018a41828502e85457d))
+
+* feat(gui)!: Created a gui for launching
+
+GUI is callable with `nuxbt gui`
+
+Created desktop file for launching from application launcher
+
+Isolated bluetooth permissions
+
+App no longer requires being called with sudo
+
+Check and Toggle bluetooth modifications with check and toggle commands
+
+Replaced previously missed nxbt calls with nuxbt calls
+
+Moved web app secrets and ssl certs to user config directory
+
+* chore(ppa): Added copyright to PPA version
+
+* fix(gui): Built in process management
+
+Fixed issue where webapp instances, if not explicitly stopped, would keep running in the background.
+
+* fix(cli): Ignored false-positive error on setcap
+
+
 ## v2.0.0 (2025-12-16)
 
 ### Features
