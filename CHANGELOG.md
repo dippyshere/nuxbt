@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## v3.0.1 (2025-12-17)
+
+### Bug Fixes
+
+- **ppa**: Fixed issues with launchpad builds ([#30](https://github.com/hannahbee91/nuxbt/pull/30),
+  [`5570f6d`](https://github.com/hannahbee91/nuxbt/commit/5570f6d161b86d35a367fe889bf9a57582356611))
+
+Using pbuilder locally helps me make sure these issues don't come back.
+
+
 ## v3.0.0 (2025-12-17)
 
 ### Features
