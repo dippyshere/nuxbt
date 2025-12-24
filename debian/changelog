@@ -1,3 +1,17 @@
+nuxbt (3.1.0-1) noble; urgency=medium
+
+  * New release 3.1.0
+  * ### Features
+  * **macros**: Allow written macros to hold inputs
+  *
+    ([`65bac14`](https://github.com/hannahbee91/nuxbt/commit/65bac14e87e
+    250c9b3ed4398ad6607cb6e08a6b8))
+  * Held inputs stay held down until nested inputs are completed
+  * Holds work within loops, both written and with the loop settings of
+    the webapp
+
+ -- NUXBT Releases <nuxbt@hannahis.gay>  Wed, 24 Dec 2025 05:01:43 +0000
+
 nuxbt (3.0.1-1) noble; urgency=medium
 
   * New release 3.0.1
