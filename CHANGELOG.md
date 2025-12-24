@@ -1,6 +1,18 @@
 # CHANGELOG
 
 
+## v3.1.0 (2025-12-24)
+
+### Features
+
+- **macros**: Allow written macros to hold inputs
+  ([`65bac14`](https://github.com/hannahbee91/nuxbt/commit/65bac14e87e250c9b3ed4398ad6607cb6e08a6b8))
+
+Held inputs stay held down until nested inputs are completed
+
+Holds work within loops, both written and with the loop settings of the webapp
+
+
 ## v3.0.1 (2025-12-17)
 
 ### Bug Fixes
