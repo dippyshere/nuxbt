@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v3.1.2 (2026-01-02)
+
+### Bug Fixes
+
+- **gui**: Fixed logo path detection in certain builds
+  ([`92e3f52`](https://github.com/hannahbee91/nuxbt/commit/92e3f525ff9d666c70335b35ce42d617354bde5a))
+
+
 ## v3.1.1 (2025-12-30)
 
 ### Bug Fixes
