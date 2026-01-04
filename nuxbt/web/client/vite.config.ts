@@ -27,9 +27,9 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
       },
-      '/socket.io': {
+      '/webrtc/offer': {
         target: 'http://localhost:8000',
-        ws: true,
+        changeOrigin: true,
       },
     },
   },

@@ -10,7 +10,7 @@ export function ThemeToggle() {
         // Optional: Check system preference? User requested to ignore previously, but good to have fallback.
         // return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
-    return false;
+    return true;
   });
 
   useEffect(() => {

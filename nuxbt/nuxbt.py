@@ -18,7 +18,7 @@ from .bluez import BlueZ, find_objects, toggle_clean_bluez
 from .bluez import replace_mac_addresses
 from .bluez import find_devices_by_alias
 from .bluez import SERVICE_NAME, ADAPTER_INTERFACE
-from .logging import create_logger
+from .nuxbtlogging import create_logger
 from .agent import run_agent_loop
 
 

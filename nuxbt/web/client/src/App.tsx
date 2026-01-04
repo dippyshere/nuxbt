@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { socket } from './socket';
+import { useEffect, useRef, useState } from 'react';
+import { initWebRTC } from './webrtc';
 import type { AppState } from './types';
 import { Plus, Gamepad2, AlertCircle, ArrowLeft, X } from 'lucide-react';
 import { ControllerVisual } from './components/ControllerVisual';
@@ -9,6 +9,7 @@ import { KeyBindings } from './components/KeyBindings';
 
 function App() {
   const [controllers, setControllers] = useState<AppState>({});
+  const etagRef = useRef<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedController, setSelectedController] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'macros' | 'bindings'>(() => {
@@ -24,54 +25,77 @@ function App() {
   }, [activeTab]);
 
   useEffect(() => {
-    function onState(value: AppState) {
-      setControllers(value);
-    }
-
-    function onControllerCreated(index: number) {
-        setSelectedController(index.toString());
-    }
-
-    function onError(err: string) {
-      setError(err);
-      // Removed timeout, user wants persistent pop-up until closed
-    }
-
-    socket.on('state', onState);
-    socket.on('error', onError);
-    socket.on('create_pro_controller', onControllerCreated);
-
-    // Global Error Handlers
-    const handleGlobalError = (event: ErrorEvent) => onError(event.message);
-    const handlePromiseError = (event: PromiseRejectionEvent) => onError(String(event.reason));
-    window.addEventListener('error', handleGlobalError);
-    window.addEventListener('unhandledrejection', handlePromiseError);
-
-    const pollInterval = setInterval(() => {
-        if (socket.connected) {
-            socket.emit('state');
-        }
-    }, 100);
-
-    return () => {
-      socket.off('state', onState);
-      socket.off('error', onError);
-      socket.off('create_pro_controller', onControllerCreated);
-      window.removeEventListener('error', handleGlobalError);
-      window.removeEventListener('unhandledrejection', handlePromiseError);
-      clearInterval(pollInterval);
-    };
+      initWebRTC().catch(err => {
+          console.error(err);
+          setError(String(err));
+      });
   }, []);
 
-  const createController = () => {
-    socket.emit('web_create_pro_controller');
+  useEffect(() => {
+      function onError(err: string) {
+          setError(err);
+      }
+
+      const handleGlobalError = (event: ErrorEvent) => onError(event.message);
+      const handlePromiseError = (event: PromiseRejectionEvent) => onError(String(event.reason));
+      window.addEventListener('error', handleGlobalError);
+      window.addEventListener('unhandledrejection', handlePromiseError);
+
+      return () => {
+          window.removeEventListener('error', handleGlobalError);
+          window.removeEventListener('unhandledrejection', handlePromiseError);
+      };
+  }, []);
+
+  useEffect(() => {
+      let alive = true;
+
+      async function poll() {
+          try {
+              const res = await fetch("/state", {
+                  headers: etagRef.current
+                  ? { "If-None-Match": etagRef.current }
+                  : undefined,
+              });
+
+              if (res.status === 304) return;
+              if (!res.ok) return;
+
+              const newEtag = res.headers.get("ETag");
+              const data = (await res.json()) as AppState;
+
+              if (!alive) return;
+
+              if (newEtag) etagRef.current = newEtag;
+              setControllers(data);
+          } catch {}
+      }
+
+      poll();
+      const id = setInterval(poll, 1500);
+
+      return () => {
+          alive = false;
+          clearInterval(id);
+      };
+  }, [1500]);
+
+  const createController = async () => {
+      const res = await fetch("/api/create_controller", { method: "POST" });
+      const data = await res.json();
+      setSelectedController(data.index.toString());
   };
 
-  const removeController = (index: string) => {
-    socket.emit('shutdown', parseInt(index));
-    if (selectedController === index) {
-        setSelectedController(null);
-    }
+  const removeController = async (index: string) => {
+      await fetch("/api/remove_controller", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ index: parseInt(index) }),
+      });
+
+      if (selectedController === index) {
+          setSelectedController(null);
+      }
   };
 
   const currentController = selectedController ? controllers[selectedController] : null;

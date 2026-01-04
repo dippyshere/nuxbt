@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import type { DirectInputPacket } from '../types';
-import { socket } from '../socket';
+import { sendInputPacket } from '../webrtc';
+import { packInput } from '../inputPacking';
 import proControllerSvg from '../assets/pro-controller.svg';
 
 interface Props {
@@ -108,15 +109,15 @@ export const ControllerVisual: React.FC<Props> = ({ index, input, setInput }) =>
         packet.DPAD_DOWN = keys.has('N') || gpButtons.Down;
         packet.DPAD_LEFT = keys.has('V') || gpButtons.Left;
         packet.DPAD_RIGHT = keys.has('B') || gpButtons.Right;
-        
-        packet.L_STICK = { 
+
+        packet.L_STICK = {
             ...packet.L_STICK,
             LS_UP: false, LS_DOWN: false, LS_LEFT: false, LS_RIGHT: false,
-            X_VALUE: finalLx, 
-            Y_VALUE: finalLy, 
+            X_VALUE: finalLx,
+            Y_VALUE: finalLy,
             PRESSED: keys.has('T') || gpButtons.L3
         };
-        packet.R_STICK = { 
+        packet.R_STICK = {
             ...packet.R_STICK,
             RS_UP: false, RS_DOWN: false, RS_LEFT: false, RS_RIGHT: false,
             X_VALUE: finalRx, 
@@ -127,7 +128,8 @@ export const ControllerVisual: React.FC<Props> = ({ index, input, setInput }) =>
         const newStr = JSON.stringify(packet);
         if (newStr !== lastInputRef.current) {
             setInput(packet);
-            socket.emit('input', JSON.stringify([parseInt(index), packet]));
+            const buf = packInput(parseInt(index), packet)
+            sendInputPacket(buf)
             lastInputRef.current = newStr;
         }
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { DirectInputPacket, KeyMap } from '../types';
-import { socket } from '../socket';
+import { sendInputPacket } from '../webrtc';
+import { packInput } from '../inputPacking';
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react';
 import { DEFAULT_KEYBINDS } from '../defaults';
 
@@ -48,10 +49,11 @@ export const ControllerInput: React.FC<Props> = ({ index }) => {
   }, []);
 
   const updateInput = (newInput: DirectInputPacket) => {
-    // Only update if changed (deep compare simplified)
     if (JSON.stringify(newInput) !== JSON.stringify(inputRef.current)) {
-        setInput(newInput);
-        socket.emit('input', JSON.stringify([parseInt(index), newInput]));
+      setInput(newInput);
+
+      const packet = packInput(parseInt(index), newInput);
+      sendInputPacket(packet);
     }
   };
 

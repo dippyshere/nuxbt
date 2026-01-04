@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { Play, Square, Save, Trash2, Keyboard, Circle, ChevronDown, Plus } from 'lucide-react';
-import { socket } from '../socket';
 import type { DirectInputPacket, ControllerState } from '../types';
 
 interface Props {
@@ -174,11 +173,20 @@ export function MacroControls({ controllerIndex, input, controllerState }: Props
       return lines.join("\n");
   };
 
-  const emitMacro = () => {
+  const emitMacro = async () => {
       if (!macroText.trim()) return;
-      socket.emit('macro', JSON.stringify([parseInt(controllerIndex), macroText.toUpperCase()]), (response: string) => {
-          setRunningMacroId(response);
+
+      const res = await fetch("/api/macro", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+              index: parseInt(controllerIndex),
+                               macro: macroText.toUpperCase(),
+          }),
       });
+
+      const data = await res.json();
+      setRunningMacroId(data.id);
   };
 
   const startSequence = () => {
@@ -186,10 +194,10 @@ export function MacroControls({ controllerIndex, input, controllerState }: Props
       emitMacro();
   };
 
-  const stopAll = () => {
+  const stopAll = async () => {
       setRunningMacroId(null);
       loopsRemaining.current = 0;
-      socket.emit('stop_all_macros');
+      await fetch("/api/stop_all_macros", { method: "POST" });
   };
 
   const saveMacro = async () => {

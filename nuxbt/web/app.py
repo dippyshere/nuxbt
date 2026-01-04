@@ -1,23 +1,33 @@
-import json
 import os
+import json
+import asyncio
+import pathlib
+import pwd
 from threading import RLock
-import time
 from socket import gethostname
+import struct
+import hashlib
+import logging
+
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+from aiortc import RTCPeerConnection, RTCSessionDescription
+import uvicorn
 
 from .cert import generate_cert
 from ..nuxbt import Nuxbt, PRO_CONTROLLER
-from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit
-from a2wsgi import WSGIMiddleware
-import uvicorn
-import socketio
-import pathlib
-import pwd
 
 
-app = Flask(__name__,
-            static_folder='static',)
+app = FastAPI()
+templates = Jinja2Templates(directory="nuxbt/web/templates")
+
 nuxbt = None
+pcs = set()
+user_info_lock = RLock()
+USER_INFO = {}
 
 
 def get_config_dir():
@@ -35,7 +45,7 @@ def get_config_dir():
     except Exception:
         # Fallback to current user's home
         home = str(pathlib.Path.home())
-    
+
     config_dir = os.path.join(home, ".config", "nuxbt")
     os.makedirs(config_dir, exist_ok=True)
     return config_dir
@@ -45,303 +55,358 @@ def get_macro_dir():
     """
     Get the directory where macros are stored.
     """
-    config_dir = get_config_dir()
-    macro_dir = os.path.join(config_dir, "macros")
+    macro_dir = os.path.join(get_config_dir(), "macros")
     os.makedirs(macro_dir, exist_ok=True)
     return macro_dir
 
 
-@app.route('/api/macros', methods=['GET'])
-def list_macros():
+def unpack_input(data: bytes):
+    index = data[0]
+
+    buttons = struct.unpack_from("<H", data, 1)[0]
+    meta = data[3]
+    sticks = data[4]
+
+    lx, ly, rx, ry = struct.unpack_from("<hhhh", data, 5)
+
+    packet = {
+        "L_STICK": {
+            "PRESSED": bool(sticks & 0x01),
+            "X_VALUE": lx,
+            "Y_VALUE": ly,
+            "LS_UP": False,
+            "LS_LEFT": False,
+            "LS_RIGHT": False,
+            "LS_DOWN": False,
+        },
+        "R_STICK": {
+            "PRESSED": bool(sticks & 0x02),
+            "X_VALUE": rx,
+            "Y_VALUE": ry,
+            "RS_UP": False,
+            "RS_LEFT": False,
+            "RS_RIGHT": False,
+            "RS_DOWN": False,
+        },
+
+        "DPAD_UP": bool(buttons & (1 << 4)),
+        "DPAD_DOWN": bool(buttons & (1 << 5)),
+        "DPAD_LEFT": bool(buttons & (1 << 6)),
+        "DPAD_RIGHT": bool(buttons & (1 << 7)),
+
+        "L": bool(buttons & (1 << 8)),
+        "R": bool(buttons & (1 << 9)),
+        "ZL": bool(buttons & (1 << 10)),
+        "ZR": bool(buttons & (1 << 11)),
+
+        "PLUS": bool(buttons & (1 << 12)),
+        "MINUS": bool(buttons & (1 << 13)),
+        "HOME": bool(buttons & (1 << 14)),
+        "CAPTURE": bool(buttons & (1 << 15)),
+
+        "Y": bool(buttons & (1 << 3)),
+        "X": bool(buttons & (1 << 2)),
+        "B": bool(buttons & (1 << 1)),
+        "A": bool(buttons & (1 << 0)),
+
+        "JCL_SR": bool(meta & (1 << 0)),
+        "JCL_SL": bool(meta & (1 << 1)),
+        "JCR_SR": bool(meta & (1 << 2)),
+        "JCR_SL": bool(meta & (1 << 3)),
+    }
+
+    return index, packet
+
+
+def get_app_state():
+    state_proxy = nuxbt.state.copy()
+    state = {}
+
+    for controller in state_proxy.keys():
+        state[controller] = state_proxy[controller].copy()
+
+    return state
+
+
+def make_etag_and_payload(state):
+    payload = json.dumps(
+        state,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+    etag = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    return etag, payload
+
+
+def log_filter():
+    class EndpointFilter(logging.Filter):
+        def filter(self, record):
+            return (
+                record.args
+                and len(record.args) >= 3
+                and (record.args[2] not in ["/state"] and record.args[-1] != 304)
+            )
+    logging.getLogger("uvicorn.access").addFilter(EndpointFilter())
+
+log_filter()
+
+app.mount("/static", StaticFiles(directory="nuxbt/web/static"), name="static")
+
+@app.get("/")
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+def sanitize(s: str) -> str:
+    return "".join(x for x in s if x.isalnum() or x in " -_")
+
+
+@app.get("/api/macros")
+async def list_macros():
     macro_dir = get_macro_dir()
     macros = {}
-    
+
     if os.path.exists(macro_dir):
-        # Check root for uncategorized macros
         root_macros = []
         for f in os.listdir(macro_dir):
-            full_path = os.path.join(macro_dir, f)
-            if os.path.isfile(full_path) and f.endswith(".txt"):
+            full = os.path.join(macro_dir, f)
+            if os.path.isfile(full) and f.endswith(".txt"):
                 root_macros.append(f[:-4])
-            elif os.path.isdir(full_path):
-                # This is a category
-                cat_name = f
-                cat_macros = []
-                for subf in os.listdir(full_path):
-                    if subf.endswith(".txt"):
-                        cat_macros.append(subf[:-4])
-                if cat_macros:
-                    macros[cat_name] = sorted(cat_macros)
-        
+            elif os.path.isdir(full):
+                cat = f
+                files = [
+                    sf[:-4]
+                    for sf in os.listdir(full)
+                    if sf.endswith(".txt")
+                ]
+                if files:
+                    macros[cat] = sorted(files)
+
         if root_macros:
             macros["Uncategorized"] = sorted(root_macros)
-            
-    return json.dumps(macros)
+
+    return macros
 
 
-@app.route('/api/macros', methods=['POST'])
-def save_macro():
-    data = request.json
+@app.post("/api/macros")
+async def save_macro(data: dict):
     name = data.get("name")
     category = data.get("category", "Uncategorized")
     content = data.get("macro")
-    
+
     if not name or not content:
-        return "Missing name or content", 400
-    
-    # Sanitize
+        return JSONResponse("Missing name or content", status_code=400)
+
     name = "".join(x for x in name if x.isalnum() or x in " -_")
     category = "".join(x for x in category if x.isalnum() or x in " -_")
-    
-    if not name or not category:
-        return "Invalid name or category", 400
 
-    macro_dir = get_macro_dir()
-    
-    # Check if category directory exists, create if not
-    # Treat "Uncategorized" as the root directory? 
-    # Or actually make a folder "Uncategorized"?
-    # Decision: treating "Uncategorized" as root for backward compat might be confusing if we mix files.
-    # Let's explicitly create an "Uncategorized" folder if they save there, 
-    # BUT previously saved files are in root.
-    # Migration: simpler to just use root for "Uncategorized"?
-    # If I use root for "Uncategorized", I need to handle that logic.
-    
-    target_dir = macro_dir
+    target = get_macro_dir()
     if category != "Uncategorized":
-        target_dir = os.path.join(macro_dir, category)
-    
-    os.makedirs(target_dir, exist_ok=True)
-    file_path = os.path.join(target_dir, f"{name}.txt")
-    
-    with open(file_path, "w") as f:
+        target = os.path.join(target, category)
+
+    os.makedirs(target, exist_ok=True)
+    with open(os.path.join(target, f"{name}.txt"), "w") as f:
         f.write(content)
-        
-    return "Saved", 200
+
+    return "Saved"
 
 
-@app.route('/api/macros/<name>', methods=['GET'])
-def get_macro_root(name):
-    # Backward compatibility: look in root (Uncategorized concept)
-    return get_macro("Uncategorized", name)
+@app.post("/api/macro")
+async def run_macro(data: dict):
+    macro_id = nuxbt.macro(data["index"], data["macro"], block=False)
+    return macro_id
 
-@app.route('/api/macros/<category>/<name>', methods=['GET'])
-def get_macro(category, name):
-    name = "".join(x for x in name if x.isalnum() or x in " -_")
-    category = "".join(x for x in category if x.isalnum() or x in " -_")
-    
+
+@app.get("/api/macros/{name}")
+async def get_macro_root(name: str):
+    return await get_macro("Uncategorized", name)
+
+
+@app.get("/api/macros/{category}/{name}")
+async def get_macro(category, name):
+    name = sanitize(name)
+    category = sanitize(category)
+
     macro_dir = get_macro_dir()
+
     if category == "Uncategorized":
-        # Check root first for backward compat, then explicit folder
-        file_path = os.path.join(macro_dir, f"{name}.txt")
-        if not os.path.exists(file_path):
-             file_path = os.path.join(macro_dir, category, f"{name}.txt")
+        p1 = os.path.join(macro_dir, f"{name}.txt")
+        p2 = os.path.join(macro_dir, category, f"{name}.txt")
+        file_path = p1 if os.path.exists(p1) else p2
     else:
         file_path = os.path.join(macro_dir, category, f"{name}.txt")
-    
+
     if not os.path.exists(file_path):
-        return "Macro not found", 404
-        
+        raise HTTPException(status_code=404, detail="Macro not found")
+
     with open(file_path, "r") as f:
         content = f.read()
-        
-    return json.dumps({"macro": content})
+
+    return JSONResponse({"macro": content})
 
 
-@app.route('/api/macros/<name>', methods=['DELETE'])
-def delete_macro_root(name):
-    return delete_macro("Uncategorized", name)
+@app.delete("/api/macros/{name}")
+async def delete_macro_root(name):
+    return await delete_macro("Uncategorized", name)
 
-@app.route('/api/macros/<category>/<name>', methods=['DELETE'])
-def delete_macro(category, name):
-    name = "".join(x for x in name if x.isalnum() or x in " -_")
-    category = "".join(x for x in category if x.isalnum() or x in " -_")
-    
+
+@app.delete("/api/macros/{category}/{name}")
+async def delete_macro(category, name):
+    name = sanitize(name)
+    category = sanitize(category)
+
     macro_dir = get_macro_dir()
-    
-    # Helper to delete
     did_delete = False
-    
+
     if category == "Uncategorized":
-        # Check root
         p1 = os.path.join(macro_dir, f"{name}.txt")
-        if os.path.exists(p1):
-            os.remove(p1)
-            did_delete = True
-        
-        # Check folder
         p2 = os.path.join(macro_dir, category, f"{name}.txt")
-        if os.path.exists(p2):
-            os.remove(p2)
-            did_delete = True
+
+        for p in (p1, p2):
+            if os.path.exists(p):
+                os.remove(p)
+                did_delete = True
     else:
         p = os.path.join(macro_dir, category, f"{name}.txt")
         if os.path.exists(p):
             os.remove(p)
             did_delete = True
-            
-        # Clean up empty category directory
+
         cat_dir = os.path.join(macro_dir, category)
         if os.path.exists(cat_dir) and not os.listdir(cat_dir):
             os.rmdir(cat_dir)
 
-    if did_delete:
-        return "Deleted", 200
-    else:
-        return "Macro not found", 404
+    if not did_delete:
+        raise HTTPException(status_code=404, detail="Macro not found")
+
+    return PlainTextResponse("Deleted")
 
 
-@app.route('/api/keybinds', methods=['GET'])
-def get_keybinds():
-    config_dir = get_config_dir()
-    path = os.path.join(config_dir, "keybinds.json")
-    if os.path.exists(path):
-        with open(path, "r") as f:
-            try:
-                return f.read(), 200, {'Content-Type': 'application/json'}
-            except:
-                pass
-    return json.dumps({}), 200
-
-@app.route('/api/keybinds', methods=['POST'])
-def save_keybinds():
-    config_dir = get_config_dir()
-    path = os.path.join(config_dir, "keybinds.json")
-    try:
-        data = request.json
-        with open(path, "w") as f:
-            json.dump(data, f, indent=2)
-        return "Saved", 200
-    except Exception as e:
-        return str(e), 500
-
-# Configuring/retrieving secret key
-config_dir = get_config_dir()
-secrets_path = os.path.join(config_dir, "secrets.txt")
-
-if not os.path.isfile(secrets_path):
-    secret_key = os.urandom(24).hex()
-    with open(secrets_path, "w") as f:
-        f.write(secret_key)
-else:
-    secret_key = None
-    with open(secrets_path, "r") as f:
-        secret_key = f.read()
-app.config['SECRET_KEY'] = secret_key
-
-# Starting socket server with Flask app
-# Ensure async_mode is threading for uvicorn/standard WSGI compatibility without eventlet
-# Note: This limits SocketIO to long-polling when running under uvicorn + a2wsgi/WSGIMiddleware
-# unless a2wsgi handles websocket translation (which it does for uWSGI but maybe not generic).
-sio = SocketIO(app, cookie=False, async_mode='threading', cors_allowed_origins='*')
-
-# Wrap Flask app with WSGIMiddleware to allow running with uvicorn (ASGI)
-# This middleware bridges ASGI -> WSGI
-flask_asgi = WSGIMiddleware(app)
-app_asgi = flask_asgi
-
-user_info_lock = RLock()
-USER_INFO = {}
-
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-
-@sio.on('connect')
-def on_connect():
-    with user_info_lock:
-        USER_INFO[request.sid] = {}
-
-
-@sio.on('state')
-def on_state():
-    state_proxy = nuxbt.state.copy()
-    state = {}
-    for controller in state_proxy.keys():
-        state[controller] = state_proxy[controller].copy()
-    emit('state', state)
-
-
-@sio.on('disconnect')
-def on_disconnect():
-    print("Disconnected")
-    with user_info_lock:
-        try:
-            index = USER_INFO[request.sid]["controller_index"]
-            nuxbt.remove_controller(index)
-        except KeyError:
-            pass
-
-
-@sio.on('shutdown')
-def on_shutdown(index):
-    nuxbt.remove_controller(index)
-
-
-@sio.on('web_create_pro_controller')
-def on_create_controller():
-    print("Create Controller")
-
-    try:
-        reconnect_addresses = nuxbt.get_switch_addresses()
-        index = nuxbt.create_controller(PRO_CONTROLLER, reconnect_address=reconnect_addresses)
-
-        with user_info_lock:
-            USER_INFO[request.sid]["controller_index"] = index
-
-        emit('create_pro_controller', index)
-    except Exception as e:
-        emit('error', str(e))
-
-
-@sio.on('input')
-def handle_input(message):
-    # print("Webapp Input", time.perf_counter())
-    message = json.loads(message)
-    index = message[0]
-    input_packet = message[1]
-    nuxbt.set_controller_input(index, input_packet)
-
-
-@sio.on('macro')
-def handle_macro(message):
-    message = json.loads(message)
-    index = message[0]
-    macro = message[1]
-    macro_id = nuxbt.macro(index, macro, block=False)
-    return macro_id
-
-
-
-@sio.on('stop_all_macros')
-def handle_stop_all_macros():
+@app.post("/api/stop_all_macros")
+async def stop_macros():
     if nuxbt:
         nuxbt.clear_all_macros()
 
 
+@app.get("/api/keybinds")
+async def get_keybinds():
+    config_dir = get_config_dir()
+    path = os.path.join(config_dir, "keybinds.json")
+
+    if os.path.exists(path):
+        try:
+            with open(path, "r") as f:
+                return JSONResponse(json.load(f))
+        except Exception:
+            pass
+
+    return JSONResponse({})
+
+
+@app.post("/api/keybinds")
+async def save_keybinds(request: Request):
+    config_dir = get_config_dir()
+    path = os.path.join(config_dir, "keybinds.json")
+
+    try:
+        data = await request.json()
+        with open(path, "w") as f:
+            json.dump(data, f, indent=2)
+        return PlainTextResponse("Saved")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/webrtc/offer")
+async def webrtc_offer(params: dict):
+    pc = RTCPeerConnection()
+    pcs.add(pc)
+
+    @pc.on("datachannel")
+    def on_datachannel(channel):
+        print("WebRTC channel:", channel.label)
+
+        @channel.on("message")
+        def on_message(message):
+            if isinstance(message, bytes):
+                index, packet = unpack_input(message)
+                nuxbt.set_controller_input(index, packet)
+
+
+    await pc.setRemoteDescription(
+        RTCSessionDescription(
+            sdp=params["sdp"],
+            type=params["type"]
+        )
+    )
+
+    answer = await pc.createAnswer()
+    await pc.setLocalDescription(answer)
+
+    return {
+        "sdp": pc.localDescription.sdp,
+        "type": pc.localDescription.type
+    }
+
+
+@app.post("/api/create_controller")
+async def create_controller():
+    reconnect = nuxbt.get_switch_addresses()
+    index = nuxbt.create_controller(PRO_CONTROLLER, reconnect_address=reconnect)
+    return {"index": index}
+
+
+@app.post("/api/remove_controller")
+async def remove_controller(data: dict):
+    index = data.get("index")
+    if index is not None:
+        nuxbt.remove_controller(index)
+    return "OK"
+
+
+@app.get("/state")
+async def get_state(request: Request):
+    state = get_app_state()
+    etag, payload = make_etag_and_payload(state)
+
+    client_etag = request.headers.get("if-none-match")
+
+    if client_etag == etag:
+        return Response(status_code=304)
+
+    return Response(
+        content=payload,
+        media_type="application/json",
+        headers={
+            "ETag": etag,
+            "Cache-Control": "no-cache",
+        },
+    )
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    if nuxbt:
+        for controller_index in nuxbt.manager_state.keys():
+            nuxbt.remove_controller(controller_index)
+    await asyncio.gather(*(pc.close() for pc in pcs))
+
 
 def start_web_app(ip='0.0.0.0', port=8000, usessl=False, cert_path=None, debug=False):
     global nuxbt
+
     if nuxbt is None:
         nuxbt = Nuxbt(debug=debug)
 
+    ssl_args = {}
+
     if usessl:
-        if cert_path is None:
-            # Store certs in the user's config directory
-            config_dir = get_config_dir()
-            cert_path = os.path.join(config_dir, "cert.pem")
-            key_path = os.path.join(config_dir, "key.pem")
-        else:
-            # If specified, store certs at the user's preferred location
-            cert_path = os.path.join(
-                cert_path, "cert.pem"
-            )
-            key_path = os.path.join(
-                cert_path, "key.pem"
-            )
-        if not os.path.isfile(cert_path) or not os.path.isfile(key_path):
+        config_dir = get_config_dir()
+        cert_path = os.path.join(config_dir, "cert.pem")
+        key_path = os.path.join(config_dir, "key.pem")
+
+        if not os.path.exists(cert_path):
             print(
                 "\n"
                 "-----------------------------------------\n"
@@ -368,12 +433,15 @@ def start_web_app(ip='0.0.0.0', port=8000, usessl=False, cert_path=None, debug=F
             with open(key_path, "wb") as f:
                 f.write(key)
 
-        # Run with uvicorn
-        # Note: uvicorn.run blocks.
-        uvicorn.run(app_asgi, host=ip, port=port, ssl_keyfile=key_path, ssl_certfile=cert_path)
-    else:
-        uvicorn.run(app_asgi, host=ip, port=port)
+        ssl_args = {
+            "ssl_certfile": cert_path,
+            "ssl_keyfile": key_path
+        }
 
-
-if __name__ == "__main__":
-    start_web_app()
+    uvicorn.run(
+        "nuxbt.web.app:app",
+        host=ip,
+        port=port,
+        log_level="debug" if debug else "info",
+        **ssl_args
+    )
